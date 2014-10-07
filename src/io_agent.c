@@ -207,7 +207,7 @@ static void ioAgent(unsigned short tcpPort, const char *ioSocketPath)
                     nfds = listenFd + 1;
                 } else if (readCount > 0) {
                     /* We need to determine what serial port to send to */
-                    char *token[10];
+                    char token[3];
                     strncpy(token, inMsg, 3);
 
                     if (strncmp(token, "S1.", 3) == 0 && serialFds1.outFd >= 0)
