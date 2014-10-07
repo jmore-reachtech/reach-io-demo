@@ -40,7 +40,7 @@ void ioTtySetParams(int localEcho, int enableRS485);
 speed_t getTtySerialRate(unsigned int serialRate);
 int ioTtyInit(const char *tty_dev, unsigned int serialRate);
 int ioTtyRead(int fd, char *msgBuff, size_t bufSize, off_t *currPos);
-void ioTtyWrite(int serialFd, const char *msgBuff, int buffSize);
+void ioTtyWrite(int serialFd, char *msgBuff, int buffSize);
 
 /* functions exported from io_socket.c */
 int ioQvSocketInit(unsigned short port, int *addressFamily,

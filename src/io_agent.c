@@ -18,6 +18,8 @@ static const char *progName;
 
 static void ioAgent(unsigned short ioPort, const char *ioSocketPath);
 static inline int max(int a, int b) { return (a > b) ? a : b; }
+static void prepend(char* s, const char* t);
+
 
 int main(int argc, char** argv)
 {
@@ -62,6 +64,23 @@ static void ioInterruptHandler(int sig)
 {
     keepGoing = 0;
 }
+
+/* Prepends t into s. Assumes s has enough space allocated
+** for the combined string.
+*/
+void prepend(char* s, const char* t)
+{
+    size_t len = strlen(t);
+    size_t i;
+
+    memmove(s + len, s, strlen(s) + 1);
+
+    for (i = 0; i < len; ++i)
+    {
+        s[i] = t[i];
+    }
+}
+
 
 static void ioAgent(unsigned short tcpPort, const char *ioSocketPath)
 {
@@ -190,13 +209,16 @@ static void ioAgent(unsigned short tcpPort, const char *ioSocketPath)
                     /* We need to determine what serial port to send to */
                     char *token[10];
                     strncpy(token, inMsg, 3);
+
                     if (strncmp(token, "S1.", 3) == 0 && serialFds1.outFd >= 0)
                     {
-                        ioTtyWrite(serialFds1.outFd, inMsg, readCount);
+                        memmove(inMsg, inMsg+3, strlen(inMsg));
+                        ioTtyWrite(serialFds1.outFd, inMsg, readCount-4);
                     }
-                    else if (serialFds2.outFd >= 0)
-                    {
-                        ioTtyWrite(serialFds2.outFd, inMsg, readCount);
+                    else if (strncmp(token, "S2.", 3) == 0 && serialFds2.outFd >= 0)
+                    {                        
+                        memmove(inMsg, inMsg+3, strlen(inMsg));
+                        ioTtyWrite(serialFds2.outFd, inMsg, readCount-4);
                     }
                 }
             }
@@ -214,11 +236,12 @@ static void ioAgent(unsigned short tcpPort, const char *ioSocketPath)
                     break;
                 } else if ((serialRet > 0) && (connectedFd >= 0)) {
                     //Write to qml viewer
+                    prepend(ttyBuff1, "S1.");
                     ioQvSocketWrite(connectedFd, ttyBuff1);
                 }
             }
 
-            /* check for a character on the serial port 1 */
+            /* check for a character on the serial port 2 */
             if (FD_ISSET(serialFds2.inFd, &readFdSet)) {
                 /*
                  * serial port has something to send to the qml-viewer,
@@ -231,6 +254,7 @@ static void ioAgent(unsigned short tcpPort, const char *ioSocketPath)
                     break;
                 } else if ((serialRet > 0) && (connectedFd >= 0)) {
                     //Write to qml viewer
+                    prepend(ttyBuff2, "S2.");
                     ioQvSocketWrite(connectedFd, ttyBuff2);
                 }
             }

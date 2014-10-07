@@ -152,18 +152,21 @@ int ioTtyRead(int fd, char *msgBuff, size_t bufSize, off_t *currPos)
                 return 0;
             }
         } else {
-            LogMsg(LOG_INFO, "sio_tty_reader(): error on read()\n");
+            LogMsg(LOG_INFO, "io_tty_reader(): error on read()\n");
             return -1;
         }
     }
 }
 
 
-void ioTtyWrite(int serialFd, const char *msgBuff, int buffSize)
+void ioTtyWrite(int serialFd, char *msgBuff, int buffSize)
 {
     LogMsg(LOG_INFO, "ioTTYWRiter(): got buff %s\n", msgBuff);
 
-    if (write(serialFd, msgBuff, buffSize) < 0) {
+    char str[1];
+    strcpy(str, "\r");
+    strncat(msgBuff, str, 1);
+    if (write(serialFd, msgBuff, buffSize+1) < 0) {
         LogMsg(LOG_INFO, "%s(): error on write()\n", __FUNCTION__);
     }
 }
